@@ -143,23 +143,125 @@ function setCategory(cat          )       {
     updateTabScores();
 }
 
-function renderBoardSvg(oniBlankStageId               )       {
-    const items = getItemsForCategory(state.category);
-    els.boardSvg.innerHTML = items.map((s) => {
-        const isBlank = oniBlankStageId !== null ? s.stageId === oniBlankStageId : true;
-        const cls = oniBlankStageId !== null
-            ? (isBlank ? 'stage-node oni-target-blank interactive-target' : 'stage-node solved')
-            : 'stage-node interactive-target masked';
-        const txt = oniBlankStageId !== null ? (isBlank ? '？' : s.name) : '？';
-        return `<g class="${cls}" data-stage="${s.stageId}" tabindex="0" role="button" transform="translate(${s.x}, ${s.y})">
-            <g class="stage-visual">
-                <rect class="stage-box ${isBlank && oniBlankStageId ? 'oni-focus-box' : ''}" x="-92" y="-38" width="184" height="76" rx="16" fill="#FFFFFF" stroke="#6F7977" stroke-width="2.5" />
-                <text x="0" y="-14" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6E82">${s.boxLabel}</text>
-                <text class="stage-label" x="0" y="14" text-anchor="middle" font-size="16" font-weight="800" fill="#161D1C">${txt}</text>
+function renderBoardBackdropSvg(cat          )         {
+    if (cat === 'photo') {
+        return `
+        <!-- Top panel: 光の強さと光合成速度グラフ -->
+        <g transform="translate(16, 10)">
+            <rect width="668" height="180" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+            <text x="20" y="24" font-size="13" font-weight="700" fill="#334155">光の強さと光合成速度グラフ</text>
+            <!-- Axes -->
+            <line x1="60" y1="140" x2="620" y2="140" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="60" y1="140" x2="60" y2="35" stroke="#64748B" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="625" y="144" font-size="11" fill="#64748B">光の強さ</text>
+            <text x="50" y="32" font-size="11" fill="#64748B">光合成速度</text>
+            <text x="52" y="152" font-size="10" fill="#64748B">0</text>
+            <!-- Curves: 陽生植物 (solid) & 陰生植物 (dashed) -->
+            <path d="M 60 120 Q 200 60 380 60 L 610 60" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+            <text x="400" y="55" font-size="10" font-weight="700" fill="#2563EB">陽生植物</text>
+            <path d="M 60 100 Q 140 45 240 45 L 610 45" fill="none" stroke="#10B981" stroke-width="2.5" stroke-dasharray="5,3"/>
+            <text x="260" y="40" font-size="10" font-weight="700" fill="#10B981">陰生植物</text>
+            <!-- Highlights: compensations / saturations -->
+            <line x1="140" y1="140" x2="140" y2="100" stroke="#94A3B8" stroke-dasharray="2,2"/>
+            <text x="140" y="153" font-size="9" text-anchor="middle" fill="#64748B">光補償点</text>
+            <line x1="380" y1="140" x2="380" y2="60" stroke="#94A3B8" stroke-dasharray="2,2"/>
+            <text x="380" y="153" font-size="9" text-anchor="middle" fill="#64748B">光飽和点</text>
+        </g>
+        <!-- Bottom panel: 植生の遷移 -->
+        <g transform="translate(16, 200)">
+            <rect width="668" height="325" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+            <text x="20" y="24" font-size="13" font-weight="700" fill="#334155">植生の遷移（裸地→草原→低木林→陽樹林→混交林→陰樹林[極相]）</text>
+            <g transform="translate(30, 45)">
+                <!-- Progression boxes & arrows -->
+                <rect x="0" y="20" width="90" height="50" rx="8" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+                <text x="45" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">裸地</text>
+                <text x="45" y="58" text-anchor="middle" font-size="9" fill="#64748B">（乾性/湿性）</text>
+                
+                <path d="M 95 45 L 115 45" stroke="#0D9488" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <rect x="120" y="20" width="90" height="50" rx="8" fill="#CCFBF1" stroke="#2DD4BF" stroke-width="1.5"/>
+                <text x="165" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#0F766E">草原本</text>
+                <text x="165" y="58" text-anchor="middle" font-size="9" fill="#115E59">イネ科・ススキ</text>
+                
+                <path d="M 215 45 L 235 45" stroke="#0D9488" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <rect x="240" y="20" width="90" height="50" rx="8" fill="#FEF08A" stroke="#FACC15" stroke-width="1.5"/>
+                <text x="285" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#854D0E">低木林</text>
+                <text x="285" y="58" text-anchor="middle" font-size="9" fill="#713F12">キイチゴ等</text>
+                
+                <path d="M 335 45 L 355 45" stroke="#0D9488" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <rect x="360" y="20" width="90" height="50" rx="8" fill="#BAE6FD" stroke="#38BDF8" stroke-width="1.5"/>
+                <text x="405" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#0369A1">陽樹林</text>
+                <text x="405" y="58" text-anchor="middle" font-size="9" fill="#075985">アカマツ・クロマツ</text>
+                
+                <path d="M 455 45 L 475 45" stroke="#0D9488" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <rect x="480" y="20" width="90" height="50" rx="8" fill="#DDD6FE" stroke="#A78BFA" stroke-width="1.5"/>
+                <text x="525" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">混交林</text>
+                <text x="525" y="58" text-anchor="middle" font-size="9" fill="#4C1D95">陽樹＋陰樹</text>
+                
+                <path d="M 572 45 L 590 45" stroke="#0D9488" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <rect x="595" y="20" width="45" height="50" rx="8" fill="#FBCFE8" stroke="#F472B6" stroke-width="1.5"/>
+                <text x="617" y="42" text-anchor="middle" font-size="10" font-weight="700" fill="#9D174D">陰樹林</text>
+                <text x="617" y="58" text-anchor="middle" font-size="8" fill="#831843">（極相）</text>
+            </g>
+            <text x="334" y="130" text-anchor="middle" font-size="11" fill="#475569">💡 土壌の発達や光環境（地表の暗さ）の変化に伴うバトンタッチの歴史</text>
+        </g>`;
+    } else {
+        return `
+        <!-- Top-left panel: 垂直分布 -->
+        <g transform="translate(16, 10)">
+            <rect width="326" height="180" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+            <text x="16" y="24" font-size="12" font-weight="700" fill="#334155">垂直分布（山岳断面図・森林限界2500m）</text>
+            <!-- Mountain polygon -->
+            <polygon points="30,160 163,50 296,160" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+            <text x="163" y="100" text-anchor="middle" font-size="10" fill="#475569">高山帯（2500m〜）</text>
+            <text x="163" y="125" text-anchor="middle" font-size="10" fill="#475569">亜高山帯 / 針葉樹林</text>
+            <text x="163" y="148" text-anchor="middle" font-size="10" fill="#475569">山地帯 / 落葉広葉樹</text>
+            <text x="163" y="158" text-anchor="middle" font-size="9" fill="#1E293B">丘陵帯 / 常緑広葉樹</text>
+            <line x1="80" y1="75" x2="246" y2="75" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="260" y="78" font-size="9" fill="#EF4444">森林限界</text>
+        </g>
+        <!-- Top-right panel: 川の自然浄化グラフ -->
+        <g transform="translate(358, 10)">
+            <rect width="326" height="180" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+            <text x="16" y="24" font-size="12" font-weight="700" fill="#334155">川の自然浄化グラフ</text>
+            <!-- Axes -->
+            <line x1="40" y1="150" x2="300" y2="150" stroke="#64748B" stroke-width="1.2"/>
+            <line x1="40" y1="150" x2="40" y2="40" stroke="#64748B" stroke-width="1.2"/>
+            <text x="170" y="170" text-anchor="middle" font-size="10" fill="#64748B">下流への流れ（時間経過）</text>
+            <!-- Staggered peak curves -->
+            <path d="M 40 140 Q 80 50 120 140" fill="none" stroke="#EF4444" stroke-width="2"/>
+            <text x="80" y="45" text-anchor="middle" font-size="9" font-weight="700" fill="#EF4444">細菌増殖</text>
+            <path d="M 100 140 Q 140 65 180 140" fill="none" stroke="#F59E0B" stroke-width="2"/>
+            <text x="140" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#F59E0B">ゾウリムシ</text>
+            <path d="M 160 140 Q 210 75 260 140" fill="none" stroke="#10B981" stroke-width="2"/>
+            <text x="210" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#10B981">藻類増殖</text>
+        </g>
+        <!-- Bottom panel: 富栄養化＆地球環境問題 -->
+        <g transform="translate(16, 200)">
+            <rect width="668" height="325" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+            <text x="20" y="24" font-size="13" font-weight="700" fill="#334155">富栄養化（アオコ vs 赤潮）＆ 地球環境問題（温暖化 vs オゾン層）</text>
+            <g transform="translate(25, 40)">
+                <rect x="0" y="0" width="300" height="120" rx="8" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="1.5"/>
+                <text x="150" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#0369A1">🌊 富栄養化現象</text>
+                <text x="15" y="45" font-size="10" fill="#334155">・生活排水や肥料の流入によるN・P過剰</text>
+                <text x="15" y="68" font-size="10" fill="#334155">・淡水（湖沼）での発生 ＝ <b>アオコ</b>（藍藻類）</text>
+                <text x="15" y="91" font-size="10" fill="#334155">・海水（内湾）での発生 ＝ <b>赤潮</b>（植物プランクトン）</text>
+            </g>
+            <g transform="translate(343, 40)">
+                <rect x="0" y="0" width="300" height="120" rx="8" fill="#FEF3C7" stroke="#FCD34D" stroke-width="1.5"/>
+                <text x="150" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#B45309">🌍 地球環境問題</text>
+                <text x="15" y="45" font-size="10" fill="#334155">・<b>地球温暖化</b>：CO2等温室効果ガスによる<b>赤外線</b>吸収</text>
+                <text x="15" y="68" font-size="10" fill="#334155">・<b>オゾン層破壊</b>：フロンガス等による<b>紫外線</b>遮断低下</text>
+                <text x="15" y="91" font-size="10" fill="#334155">💡 試験で混同しやすいため波長・原因物質を対比！</text>
             </g>
         </g>`;
-    }).join('');
+    }
 }
+
 
 function startGame(difficulty            )       {
     stopTimers();
