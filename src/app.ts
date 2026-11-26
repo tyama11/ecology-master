@@ -263,6 +263,32 @@ function renderBoardBackdropSvg(cat: Category): string {
 }
 
 
+
+function renderBoardSvg(oniBlankStageId: string | null): void {
+    const items = getItemsForCategory(state.category);
+    const backdrop = renderBoardBackdropSvg(state.category);
+    const nodes = items.map((s, idx) => {
+        const isBlank = oniBlankStageId !== null ? s.stageId === oniBlankStageId : true;
+        const cls = oniBlankStageId !== null
+            ? (isBlank ? 'stage-node oni-target-blank interactive-target' : 'stage-node solved')
+            : 'stage-node interactive-target masked';
+        const txt = oniBlankStageId !== null
+            ? (isBlank ? '【 ？ 】' : s.name)
+            : (state.difficulty === 'normal' ? `【 ${idx + 1} 】` : '？');
+        const label = state.difficulty === 'easy'
+            ? `<text x="0" y="-14" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6E82">${s.boxLabel}</text>`
+            : '';
+        return `<g class="${cls}" data-stage="${s.stageId}" tabindex="0" role="button" transform="translate(${s.x}, ${s.y})">
+            <g class="stage-visual">
+                <rect class="stage-box ${isBlank && oniBlankStageId ? 'oni-focus-box' : ''}" x="-92" y="-38" width="184" height="76" rx="16" fill="#FFFFFF" stroke="#6F7977" stroke-width="2.5" />
+                ${label}
+                <text class="stage-label" x="0" y="${state.difficulty === 'easy' ? 14 : 6}" text-anchor="middle" font-size="16" font-weight="800" fill="#161D1C">${txt}</text>
+            </g>
+        </g>`;
+    }).join('');
+    els.boardSvg.innerHTML = backdrop + nodes;
+}
+
 function startGame(difficulty: Difficulty): void {
     stopTimers();
     state.difficulty = difficulty;
